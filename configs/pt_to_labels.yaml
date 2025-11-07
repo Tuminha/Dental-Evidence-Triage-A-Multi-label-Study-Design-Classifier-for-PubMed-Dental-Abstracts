@@ -1,0 +1,30 @@
+# PubMed Publication Types / keywords → canonical multi-labels
+
+SystematicReview:
+  pt: ["Systematic Review"]
+
+MetaAnalysis:
+  pt: ["Meta-Analysis"]
+
+RCT:
+  pt: ["Randomized Controlled Trial"]
+
+ClinicalTrial:
+  pt: ["Clinical Trial", "Controlled Clinical Trial", "Pragmatic Clinical Trial"]
+
+Cohort:
+  pt: ["Cohort Studies", "Prospective Studies", "Retrospective Studies"]
+
+CaseControl:
+  pt: ["Case-Control Studies"]
+
+CaseReport:
+  pt: ["Case Reports"]
+
+InVitro:
+  pt: []
+  keywords: ["in vitro", "ex vivo"]
+
+Animal:
+  pt: ["Animal Experimentation"]
+  keywords: ["rat", "mouse", "murine", "canine", "rabbit", "dog", "porcine", "animal study"]
