@@ -60,9 +60,10 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 
 ### 🏆 Key Achievements
 
-- [x] Reproducible PubMed ingestion pipeline with rate-limit handling
-- [x] Multi-label mapping from Publication Types to canonical study designs
-- [x] Temporal train/val/test splits (2018-2021 / 2022-2023 / 2024-2025)
+- [x] **Notebook 01** - Core PubMed ingestion functions working (load_config, build_query, esearch, get_all_pmids)
+- [ ] Reproducible PubMed ingestion pipeline with rate-limit handling (in progress)
+- [ ] Multi-label mapping from Publication Types to canonical study designs
+- [ ] Temporal train/val/test splits (2018-2021 / 2022-2023 / 2024-2025)
 - [ ] DistilBERT classifier with micro-F1 ≥ 0.75 on common labels
 - [ ] Hugging Face Hub deployment with inference widget
 - [ ] Error analysis and threshold optimization
@@ -121,12 +122,15 @@ jupyter notebook notebooks/
 
 ## 📓 Notebooks
 
-### Phase 1: Data Acquisition ✅
+### Phase 1: Data Acquisition 🔄
 
-**01 - Ingest PubMed Records**
-- Query construction with dental MeSH terms
-- Batch retrieval with rate limiting
-- XML storage for reproducibility
+**01 - Ingest PubMed Records** (In Progress)
+- ✅ Query construction with dental MeSH terms
+- ✅ ESearch API integration with pagination
+- ✅ Rate limiting and error handling
+- ✅ NCBI 10K result limit handling
+- 🔄 Batch XML retrieval (efetch function)
+- 🔄 XML storage for reproducibility
 
 ### Phase 2: Data Preparation ✅
 
@@ -229,10 +233,44 @@ Expected targets:
 - Multi-label classification • Transformer fine-tuning • Temporal data splits • API integration • Schema validation • Model deployment • Error analysis
 
 **Challenges Solved:**
-- Handling class imbalance in medical literature
-- Mapping noisy Publication Types to canonical labels
-- Preventing temporal leakage in train/test splits
-- Optimizing thresholds for multi-label predictions
+- ✅ NCBI API rate limiting and maintenance detection
+- ✅ YAML configuration with multi-line string cleanup
+- ✅ NCBI 10K result pagination limit (max 10,000 records per query)
+- ✅ JSON decoding errors from control characters in queries
+- 🔄 Handling class imbalance in medical literature
+- 🔄 Mapping noisy Publication Types to canonical labels
+- 🔄 Preventing temporal leakage in train/test splits
+- 🔄 Optimizing thresholds for multi-label predictions
+
+---
+
+## 📊 Progress Log
+
+### 2024-11-08: Notebook 01 - PubMed Ingestion (In Progress)
+
+**Completed:**
+- ✅ Environment setup with `python-dotenv` for NCBI credentials
+- ✅ YAML configuration loading with `load_config()` function
+- ✅ Query building with `build_query()` - handles multi-line YAML and year templating
+- ✅ ESearch API integration with `esearch()` - fetches PMID lists from PubMed
+- ✅ Pagination with `get_all_pmids()` - collects up to 10,000 PMIDs per year with progress tracking
+- ✅ Error handling for NCBI maintenance windows and malformed queries
+
+**Key Learnings:**
+- NCBI E-utilities has a hard limit of 10,000 results per query
+- Multi-line YAML strings need whitespace cleanup for API compatibility
+- Environment variables require explicit loading with `python-dotenv`
+- Rate limiting: 3 req/sec without API key, 10 req/sec with key
+
+**Dataset Size Estimate:**
+- ~80,000 papers total (10,000 per year × 8 years)
+- 2024 alone: 55,143 papers found (limited to first 10,000)
+- Sufficient for multi-label classifier training
+
+**Next Steps:**
+- Implement `efetch()` function for XML retrieval
+- Complete main ingestion loop with XML file storage
+- Test full pipeline on single year (2024) before running all years
 
 ---
 

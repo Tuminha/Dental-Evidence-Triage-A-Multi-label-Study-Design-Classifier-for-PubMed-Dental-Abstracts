@@ -3,13 +3,10 @@ end_year: 2025
 language: English
 batch_ids: 500
 batch_fetch: 200
-
 # A conservative dentistry scope; you can widen/narrow later.
-term_template: >
-  (
-    dentistry[MeSH Terms] OR dental[Title/Abstract] OR "oral surgery"[Title/Abstract]
-    OR periodont*[Title/Abstract] OR implant*[Title/Abstract]
-    OR prosthodont*[Title/Abstract] OR endodont*[Title/Abstract]
-    OR orthodont*[Title/Abstract] OR "maxillofacial"[Title/Abstract]
-  ) AND ({{year}}[PDAT]:{{year}}[PDAT])
-
+term_template: |
+  (dentistry[MeSH Terms] OR dental[Title/Abstract] OR "oral surgery"[Title/Abstract]
+   OR periodont*[Title/Abstract] OR implant*[Title/Abstract]
+   OR prosthodont*[Title/Abstract] OR endodont*[Title/Abstract]
+   OR orthodont*[Title/Abstract] OR "maxillofacial"[Title/Abstract])
+   AND ({{year}}[PDAT]:{{year}}[PDAT])
