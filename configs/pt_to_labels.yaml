@@ -1,30 +1,42 @@
 # PubMed Publication Types / keywords → canonical multi-labels
+# Note: "Journal Article" is a base type (not a study design) - ignore it
+# Note: "Research Support" types are funding metadata (not study designs) - ignore them
 
 SystematicReview:
-  pt: ["Systematic Review"]
+  pt: ["Systematic Review", "Scoping Review"]
 
 MetaAnalysis:
-  pt: ["Meta-Analysis"]
+  pt: ["Meta-Analysis", "Network Meta-Analysis"]
 
 RCT:
   pt: ["Randomized Controlled Trial"]
 
 ClinicalTrial:
-  pt: ["Clinical Trial", "Controlled Clinical Trial", "Pragmatic Clinical Trial"]
+  pt: ["Clinical Trial", "Controlled Clinical Trial", "Pragmatic Clinical Trial", "Clinical Trial Protocol"]
 
 Cohort:
-  pt: ["Cohort Studies", "Prospective Studies", "Retrospective Studies"]
+  pt: ["Cohort Studies", "Prospective Studies", "Retrospective Studies", "Observational Study"]
+  mesh: ["Prospective Studies", "Retrospective Studies"]  # MeSH terms as backup (more reliable than PT for some articles)
 
 CaseControl:
-  pt: ["Case-Control Studies"]
+  pt: ["Case-Control Studies", "Comparative Study"]
 
 CaseReport:
   pt: ["Case Reports"]
 
 InVitro:
   pt: []
-  keywords: ["in vitro", "ex vivo"]
+  keywords: ["in vitro", "ex vivo", "cell culture", "tissue culture"]
 
 Animal:
   pt: ["Animal Experimentation"]
-  keywords: ["rat", "mouse", "murine", "canine", "rabbit", "dog", "porcine", "animal study"]
+  mesh: ["Animals"]  # MeSH term is PRIMARY - very reliable (7.9% of articles)
+  # Removed overly broad keywords: "in vivo" (appears in human studies), "animal study", "animal model" (too generic)
+  # Keeping only very specific animal names as backup (use with caution)
+  keywords: []  # Rely primarily on MeSH "Animals" term for accuracy
+
+Human:
+  pt: []
+  mesh: ["Humans"]  # MeSH term appears in 64% of articles - PRIMARY source
+  # Keywords as backup only (removed overly broad "clinical study", "clinical trial")
+  keywords: ["human subjects", "patients", "participants", "volunteers", "human participants"]

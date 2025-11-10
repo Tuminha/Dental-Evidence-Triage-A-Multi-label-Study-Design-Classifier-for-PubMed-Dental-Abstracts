@@ -3,10 +3,5 @@ end_year: 2025
 language: English
 batch_ids: 500
 batch_fetch: 200
-# A conservative dentistry scope; you can widen/narrow later.
-term_template: |
-  (dentistry[MeSH Terms] OR dental[Title/Abstract] OR "oral surgery"[Title/Abstract]
-   OR periodont*[Title/Abstract] OR implant*[Title/Abstract]
-   OR prosthodont*[Title/Abstract] OR endodont*[Title/Abstract]
-   OR orthodont*[Title/Abstract] OR "maxillofacial"[Title/Abstract])
-   AND ({{year}}[PDAT]:{{year}}[PDAT])
+# Balanced dentistry scope: Dental MeSH terms + specific phrases with moderate exclusions
+term_template: "(dentistry[MeSH Terms] OR \"dental care\"[MeSH Terms] OR \"oral health\"[MeSH Terms] OR \"dental implants\"[MeSH Terms] OR \"dental caries\"[MeSH Terms] OR \"periodontics\"[MeSH Terms] OR \"orthodontics\"[MeSH Terms] OR \"endodontics\"[MeSH Terms] OR \"prosthodontics\"[MeSH Terms] OR \"oral surgery\"[MeSH Terms] OR \"tooth\"[MeSH Terms] OR \"gingiva\"[MeSH Terms] OR \"periodontal diseases\"[MeSH Terms] OR \"oral hygiene\"[MeSH Terms] OR \"root canal therapy\"[MeSH Terms] OR \"dental implant\"[Title/Abstract] OR \"dental caries\"[Title/Abstract] OR \"tooth decay\"[Title/Abstract] OR \"periodontal disease\"[Title/Abstract] OR \"gingival\"[Title/Abstract] OR \"root canal\"[Title/Abstract] OR \"oral surgery\"[Title/Abstract] OR \"orthodontic\"[Title/Abstract] OR \"endodontic\"[Title/Abstract] OR \"prosthodontic\"[Title/Abstract] OR \"dental restoration\"[Title/Abstract] OR \"oral health\"[Title/Abstract]) AND ({{year}}[PDAT]:{{year}}[PDAT]) NOT (\"arthroplasty\"[Title/Abstract] OR \"knee prosthesis\"[Title/Abstract] OR \"hip prosthesis\"[Title/Abstract] OR \"breast implant\"[Title/Abstract] OR \"heart valve\"[Title/Abstract] OR \"hepatocellular carcinoma\"[Title/Abstract])"

@@ -60,9 +60,8 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 
 ### 🏆 Key Achievements
 
-- [x] **Notebook 01** - Core PubMed ingestion functions working (load_config, build_query, esearch, get_all_pmids)
-- [ ] Reproducible PubMed ingestion pipeline with rate-limit handling (in progress)
-- [ ] Multi-label mapping from Publication Types to canonical study designs
+- [x] **Notebook 01** - Complete PubMed ingestion pipeline (400 XML files, ~76,165 articles)
+- [x] **Notebook 02** - Data normalization and multi-label mapping (64,981 labeled articles, 85.3% coverage)
 - [ ] Temporal train/val/test splits (2018-2021 / 2022-2023 / 2024-2025)
 - [ ] DistilBERT classifier with micro-F1 ≥ 0.75 on common labels
 - [ ] Hugging Face Hub deployment with inference widget
@@ -75,8 +74,21 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 - **Source:** PubMed E-utilities (NCBI)
 - **Scope:** Dental research (periodontology, implants, endodontics, orthodontics, oral surgery)
 - **Time Range:** 2018–2025 (configurable)
+- **Total Articles:** 76,165 articles ingested
+- **Labeled Articles:** 64,981 articles (85.3% coverage)
 - **Target:** Multi-label study design classification
 - **Labels:** 10 canonical categories (SystematicReview, MetaAnalysis, RCT, ClinicalTrial, Cohort, CaseControl, CaseReport, InVitro, Animal, Human)
+- **Label Distribution:**
+  - Human: 56,804 articles (74.6%)
+  - Cohort: 7,035 articles (9.2%)
+  - InVitro: 6,786 articles (8.9%)
+  - Animal: 6,019 articles (7.9%) - perfect match with MeSH
+  - CaseReport: 5,084 articles (6.7%)
+  - SystematicReview: 4,128 articles (5.4%)
+  - RCT: 3,759 articles (4.9%)
+  - CaseControl: 2,460 articles (3.2%)
+  - MetaAnalysis: 2,110 articles (2.8%)
+  - ClinicalTrial: 503 articles (0.7%)
 
 See [DATACARD.md](DATACARD.md) for detailed data documentation.
 
@@ -122,24 +134,31 @@ jupyter notebook notebooks/
 
 ## 📓 Notebooks
 
-### Phase 1: Data Acquisition 🔄
+### Phase 1: Data Acquisition ✅
 
-**01 - Ingest PubMed Records** (In Progress)
+**01 - Ingest PubMed Records** (Complete)
 - ✅ Query construction with dental MeSH terms
 - ✅ ESearch API integration with pagination
 - ✅ Rate limiting and error handling
 - ✅ NCBI 10K result limit handling
-- 🔄 Batch XML retrieval (efetch function)
-- 🔄 XML storage for reproducibility
+- ✅ Batch XML retrieval (efetch function)
+- ✅ XML storage for reproducibility (400 XML files)
+- ✅ 76,165 articles ingested across 2018-2025
 
 ### Phase 2: Data Preparation ✅
 
-**02 - Normalize and Label**
-- MEDLINE XML parsing
-- Publication Type → label mapping
-- Keyword-based backfill for gaps
+**02 - Normalize and Label** (Complete)
+- ✅ MEDLINE XML parsing with XPath
+- ✅ Publication Type → label mapping (10 canonical labels)
+- ✅ MeSH term integration for Human and Animal labels
+- ✅ Keyword-based backfill for InVitro/Human labels
+- ✅ Label distribution analysis and validation
+- ✅ Over-matching detection and correction (Animal label fixed)
+- ✅ Multi-label combination analysis
+- ✅ Data filtering and saving (64,981 labeled articles)
+- ✅ Output: `data/processed/dental_abstracts.parquet`
 
-**03 - EDA and Temporal Splits**
+**03 - EDA and Temporal Splits** (Next)
 - Class balance analysis
 - Label co-occurrence patterns
 - Temporal split strategy (prevent leakage)
@@ -237,8 +256,12 @@ Expected targets:
 - ✅ YAML configuration with multi-line string cleanup
 - ✅ NCBI 10K result pagination limit (max 10,000 records per query)
 - ✅ JSON decoding errors from control characters in queries
+- ✅ Over-matching with broad keywords (Animal label: 81.2% → 7.9%)
+- ✅ Balancing MeSH terms vs keyword matching for label accuracy
+- ✅ Multi-label combination validation (Animal+Human, Human+InVitro)
+- ✅ XML parsing with XPath for nested structures
+- ✅ Label distribution analysis and quality validation
 - 🔄 Handling class imbalance in medical literature
-- 🔄 Mapping noisy Publication Types to canonical labels
 - 🔄 Preventing temporal leakage in train/test splits
 - 🔄 Optimizing thresholds for multi-label predictions
 
@@ -246,7 +269,7 @@ Expected targets:
 
 ## 📊 Progress Log
 
-### 2024-11-08: Notebook 01 - PubMed Ingestion (In Progress)
+### 2024-11-08: Notebook 01 - PubMed Ingestion ✅ (Complete)
 
 **Completed:**
 - ✅ Environment setup with `python-dotenv` for NCBI credentials
@@ -255,22 +278,66 @@ Expected targets:
 - ✅ ESearch API integration with `esearch()` - fetches PMID lists from PubMed
 - ✅ Pagination with `get_all_pmids()` - collects up to 10,000 PMIDs per year with progress tracking
 - ✅ Error handling for NCBI maintenance windows and malformed queries
+- ✅ Batch XML retrieval with `efetch()` function
+- ✅ Complete ingestion pipeline for 2018-2025 (400 XML files)
+- ✅ 76,165 articles successfully ingested
 
 **Key Learnings:**
 - NCBI E-utilities has a hard limit of 10,000 results per query
 - Multi-line YAML strings need whitespace cleanup for API compatibility
 - Environment variables require explicit loading with `python-dotenv`
 - Rate limiting: 3 req/sec without API key, 10 req/sec with key
+- Batch processing with 200 PMIDs per efetch call is efficient
 
-**Dataset Size Estimate:**
-- ~80,000 papers total (10,000 per year × 8 years)
-- 2024 alone: 55,143 papers found (limited to first 10,000)
+**Dataset Size:**
+- 76,165 articles total across 2018-2025
+- 400 XML files stored in `data/raw/`
 - Sufficient for multi-label classifier training
 
+---
+
+### 2024-11-08: Notebook 02 - Normalize and Label ✅ (Complete)
+
+**Completed:**
+- ✅ MEDLINE XML parsing with XPath expressions
+- ✅ DataFrame creation with normalized structure (pmid, title, abstract, journal, year, pub_types, mesh_terms)
+- ✅ Publication Type → label mapping with YAML configuration
+- ✅ MeSH term integration for Human and Animal labels (more reliable than keywords)
+- ✅ Keyword-based backfill for InVitro and Human labels
+- ✅ Label assignment function with PT → MeSH → Keywords priority
+- ✅ Label distribution analysis and validation
+- ✅ Over-matching detection and correction (Animal: 81.2% → 7.9%)
+- ✅ Multi-label combination analysis (Animal+Human, Human+InVitro validated)
+- ✅ Data filtering (removed 14.7% unlabeled articles)
+- ✅ Saved labeled dataset to `data/processed/dental_abstracts.parquet`
+
+**Key Learnings:**
+- Getting accurate labels requires careful data engineering, not just XML parsing
+- MeSH terms are more reliable than keyword matching (manually curated by experts)
+- Overly broad keywords (e.g., "in vivo", "animal study") can cause significant over-matching
+- Iterative refinement is essential: identify problems → analyze → refine → validate
+- Multi-label combinations like "Animal + Human" are legitimate (comparative/translational studies)
+- 14.7% of articles don't fit study design categories (narrative reviews, editorials, etc.) - this is expected
+
+**Dataset Quality:**
+- **Total Articles:** 76,165
+- **Labeled Articles:** 64,981 (85.3% coverage)
+- **Label Distribution:** Realistic and aligned with evidence hierarchy
+- **Animal Label:** Perfect match with MeSH (7.9% = 6,019 articles)
+- **Human Label:** Good coverage (74.6% = 56,804 articles)
+- **Multi-label:** 1.24 average labels per article, 37.6% have 2+ labels
+- **Output File:** `data/processed/dental_abstracts.parquet` (ready for Notebook 03)
+
+**Challenges Solved:**
+- Fixed Animal label over-matching by removing overly broad keywords, relying solely on MeSH "Animals" term
+- Refined Human label keywords to reduce false positives
+- Validated multi-label combinations to ensure clinical/biological relevance
+- Created reproducible labeling pipeline that can feed different Periospot AI apps
+
 **Next Steps:**
-- Implement `efetch()` function for XML retrieval
-- Complete main ingestion loop with XML file storage
-- Test full pipeline on single year (2024) before running all years
+- Notebook 03: EDA and temporal splits
+- Analyze label distribution across years
+- Create train/val/test splits (≤2021 / 2022-2023 / ≥2024)
 
 ---
 
