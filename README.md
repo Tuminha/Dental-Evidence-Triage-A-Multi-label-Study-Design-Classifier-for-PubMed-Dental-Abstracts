@@ -62,7 +62,7 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 
 - [x] **Notebook 01** - Complete PubMed ingestion pipeline (400 XML files, ~76,165 articles)
 - [x] **Notebook 02** - Data normalization and multi-label mapping (64,981 labeled articles, 85.3% coverage)
-- [ ] Temporal train/val/test splits (2018-2021 / 2022-2023 / 2024-2025)
+- [x] **Notebook 03** - EDA, label analysis, and temporal splits (Train: 29,926 / Val: 16,057 / Test: 18,666)
 - [ ] DistilBERT classifier with micro-F1 ≥ 0.75 on common labels
 - [ ] Hugging Face Hub deployment with inference widget
 - [ ] Error analysis and threshold optimization
@@ -91,6 +91,58 @@ A compact transformer that reads **title + abstract** and predicts **study desig
   - ClinicalTrial: 503 articles (0.7%)
 
 See [DATACARD.md](DATACARD.md) for detailed data documentation.
+
+---
+
+## 📊 Exploratory Data Analysis (EDA)
+
+### Label Frequency Distribution
+
+The dataset shows a heavily skewed distribution with **Human** label dominating (74.6% of articles), which is expected in medical research. The distribution follows the evidence hierarchy, with common study designs (Cohort, InVitro, Animal, CaseReport) having moderate frequencies, while high-quality evidence types (RCT, SystematicReview, MetaAnalysis) are rarer but present.
+
+<div align="center">
+
+<img src="image/label_frequency_distribution.png" alt="Label Frequency Distribution" width="800" />
+
+</div>
+
+**Key Insights:**
+- **Human label:** 56,804 articles (74.6%) - dominant, expected in medical research
+- **Common labels:** Cohort (9.2%), InVitro (8.9%), Animal (7.9%), CaseReport (6.7%)
+- **Moderate labels:** SystematicReview (5.4%), RCT (4.9%), CaseControl (3.2%)
+- **Rare labels:** MetaAnalysis (2.8%), ClinicalTrial (0.7%) - will need special handling
+- **Class imbalance ratio:** 113:1 (Human:ClinicalTrial) - extreme but manageable
+
+### Label Co-occurrence Matrix
+
+The co-occurrence matrix reveals important multi-label patterns. **Human** is a central label, co-occurring frequently with other study designs. **Cohort + Human** is the strongest pairing (6,930 articles), indicating that cohort studies typically involve human subjects.
+
+<div align="center">
+
+<img src="image/label_co_occurrence_matrix.png" alt="Label Co-occurrence Matrix" width="900" />
+
+</div>
+
+**Key Insights:**
+- **Cohort + Human:** 6,930 articles (strongest pairing)
+- **Human + RCT:** 3,746 articles (RCTs with human subjects)
+- **Human + SystematicReview:** 3,787 articles (systematic reviews of human studies)
+- **Human + CaseReport:** 3,628 articles (case reports on human subjects)
+- **Animal + Human:** 2,389 articles (comparative/translational studies)
+- **MetaAnalysis + SystematicReview:** 1,877 articles (meta-analyses within systematic reviews)
+
+### Temporal Splits
+
+**Split Distribution:**
+- **Train (≤2021):** 29,926 articles (46.3%)
+- **Val (2022-2023):** 16,057 articles (24.8%)
+- **Test (≥2024):** 18,666 articles (28.9%)
+
+**Why these splits?**
+- **Temporal leakage prevention:** Future data never influences past predictions
+- **Realistic deployment:** Mimics real-world scenario (predicting future papers)
+- **Sufficient data:** All splits have >15,000 articles (more than enough for training)
+- **Realistic distribution:** Reflects actual publication trends (recent years have more data)
 
 ---
 
@@ -145,7 +197,7 @@ jupyter notebook notebooks/
 - ✅ XML storage for reproducibility (400 XML files)
 - ✅ 76,165 articles ingested across 2018-2025
 
-### Phase 2: Data Preparation ✅
+### Phase 2: Data Preparation & EDA ✅
 
 **02 - Normalize and Label** (Complete)
 - ✅ MEDLINE XML parsing with XPath
@@ -158,10 +210,15 @@ jupyter notebook notebooks/
 - ✅ Data filtering and saving (64,981 labeled articles)
 - ✅ Output: `data/processed/dental_abstracts.parquet`
 
-**03 - EDA and Temporal Splits** (Next)
-- Class balance analysis
-- Label co-occurrence patterns
-- Temporal split strategy (prevent leakage)
+**03 - EDA and Temporal Splits** (Complete)
+- ✅ Label frequency distribution analysis
+- ✅ Class imbalance assessment (Human:ClinicalTrial = 113:1)
+- ✅ Label co-occurrence matrix visualization
+- ✅ Temporal split creation (Train: ≤2021, Val: 2022-2023, Test: ≥2024)
+- ✅ Split validation and distribution analysis
+- ✅ Label distribution across splits verification
+- ✅ Pandera schema validation
+- ✅ Output: `data/processed/train.parquet`, `val.parquet`, `test.parquet`
 
 ### Phase 3: Model Training 🔄
 
@@ -261,8 +318,11 @@ Expected targets:
 - ✅ Multi-label combination validation (Animal+Human, Human+InVitro)
 - ✅ XML parsing with XPath for nested structures
 - ✅ Label distribution analysis and quality validation
-- 🔄 Handling class imbalance in medical literature
-- 🔄 Preventing temporal leakage in train/test splits
+- ✅ Co-occurrence matrix computation with list columns (pandas list handling)
+- ✅ Temporal split creation with proper year boundaries (no data leakage)
+- ✅ Pandera schema validation (first-time usage, learned constraint definitions)
+- ✅ Class imbalance analysis and interpretation (113:1 ratio identified)
+- 🔄 Handling class imbalance in model training (class weights, focal loss)
 - 🔄 Optimizing thresholds for multi-label predictions
 
 ---
@@ -338,6 +398,60 @@ Expected targets:
 - Notebook 03: EDA and temporal splits
 - Analyze label distribution across years
 - Create train/val/test splits (≤2021 / 2022-2023 / ≥2024)
+
+---
+
+### 2024-11-08: Notebook 03 - EDA and Temporal Splits ✅ (Complete)
+
+**Completed:**
+- ✅ Label frequency distribution analysis and visualization
+- ✅ Class imbalance assessment (identified 113:1 Human:ClinicalTrial ratio)
+- ✅ Label co-occurrence matrix computation and visualization
+- ✅ Temporal split creation (Train: ≤2021, Val: 2022-2023, Test: ≥2024)
+- ✅ Split validation and distribution analysis
+- ✅ Label distribution across splits verification
+- ✅ Pandera schema validation for data quality
+- ✅ Export to separate parquet files (train.parquet, val.parquet, test.parquet)
+
+**Key Learnings:**
+- Temporal splits prevent data leakage by keeping future data out of training
+- "Balanced" temporal splits ≠ equal sizes, but correct boundaries + sufficient data
+- Co-occurrence matrices reveal important multi-label patterns (Human is central label)
+- Class imbalance (113:1) is extreme but manageable with proper techniques
+- Pandera provides robust schema validation for data quality assurance
+- Recent years (2024-2025) have more publications than earlier years (realistic trend)
+
+**Dataset Splits:**
+- **Train (≤2021):** 29,926 articles (46.3%) - 4 years of historical data
+- **Val (2022-2023):** 16,057 articles (24.8%) - 2 years of recent past
+- **Test (≥2024):** 18,666 articles (28.9%) - 2 years of future/present
+- **Total:** 64,649 articles (after filtering)
+
+**EDA Findings:**
+- **Label Distribution:** Heavily skewed with Human dominating (74.6%)
+- **Class Imbalance:** 113:1 ratio (Human:ClinicalTrial) - extreme but expected
+- **Co-occurrence Patterns:** Human co-occurs frequently with other labels (central label)
+- **Multi-label:** 1.46 average labels per article, 37.6% have 2+ labels
+- **Temporal Trends:** Publication output increases over time (realistic)
+
+**Challenges Solved:**
+- Co-occurrence matrix computation with list columns (can't use .unique() on lists)
+- Temporal split creation with proper year boundaries (no leakage)
+- Pandera schema validation (first-time usage, learned constraint definitions)
+- Understanding what "balanced" means for temporal splits (not equal sizes)
+
+**Output Files:**
+- `data/processed/train.parquet` (29,926 articles)
+- `data/processed/val.parquet` (16,057 articles)
+- `data/processed/test.parquet` (18,666 articles)
+- `image/label_frequency_distribution.png`
+- `image/label_co_occurrence_matrix.png`
+
+**Next Steps:**
+- Notebook 04: Train DistilBERT multi-label classifier
+- Use train/val splits for training and hyperparameter tuning
+- Address class imbalance with class weights or focal loss
+- Optimize per-label thresholds on validation set
 
 ---
 
