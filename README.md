@@ -64,7 +64,8 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 - [x] **Notebook 02** - Data normalization and multi-label mapping (64,981 labeled articles, 85.3% coverage)
 - [x] **Notebook 03** - EDA, label analysis, and temporal splits (Train: 29,926 / Val: 16,057 / Test: 18,666)
 - [x] **Notebook 04** - Data preparation complete (label binarization, tokenization, HF Dataset conversion)
-- [ ] DistilBERT classifier training and evaluation
+- [x] **Notebook 04** - Model setup complete (model initialization, metrics function, training args, trainer)
+- [ ] DistilBERT classifier training completion and evaluation
 - [ ] Micro-F1 ≥ 0.75 on common labels
 - [ ] Hugging Face Hub deployment with inference widget
 - [ ] Error analysis and threshold optimization
@@ -231,10 +232,11 @@ jupyter notebook notebooks/
 - ✅ HuggingFace Dataset creation: Converted pandas DataFrames to HF Dataset format
 - ✅ Tokenization: DistilBERT tokenizer applied with max_length=512, truncation, padding
 - ✅ Dataset formatting: Set to PyTorch format with input_ids, attention_mask, labels
-- 🔄 Model initialization (TODO)
-- 🔄 Metrics function (TODO)
-- 🔄 Training arguments configuration (TODO)
-- 🔄 Model training (TODO)
+- ✅ Model initialization: DistilBERT loaded with num_labels=10, problem_type='multi_label_classification'
+- ✅ Metrics function: Implemented compute_metrics() with sigmoid thresholding and micro/macro F1
+- ✅ Training arguments: Configured TrainingArguments (learning_rate=2e-5, batch_size=8, epochs=3, etc.)
+- ✅ Trainer setup: Created Trainer with model, datasets, and compute_metrics
+- 🔄 Model training: Training in progress (3 epochs, evaluating each epoch, saving best model based on micro-F1)
 
 **05 - Evaluation and Error Analysis**
 - Per-label precision/recall/F1
@@ -490,22 +492,41 @@ Expected targets:
 - **Tokenization:** All texts tokenized with DistilBERT tokenizer (512 max tokens)
 - **Label Vectors:** 10-dimensional binary vectors (98 unique combinations in training set)
 
+**Completed Since Last Update:**
+- ✅ Model initialization: DistilBERT loaded from 'distilbert-base-uncased' with 10 output labels for multi-label classification
+- ✅ Metrics function: Implemented `compute_metrics()` with sigmoid activation, 0.5 threshold, and micro/macro precision/recall/F1
+- ✅ Training arguments: Configured with learning_rate=2e-5, batch_size=8, 3 epochs, warmup_ratio=0.1, weight_decay=0.01
+- ✅ Trainer setup: Created Trainer instance with model, training args, datasets, and metrics function
+- ✅ Training started: Model training initiated with validation evaluation each epoch
+
 **Remaining Tasks:**
-- 🔄 Model initialization: Load DistilBERT with num_labels=10, problem_type='multi_label_classification'
-- 🔄 Metrics function: Implement compute_metrics() with sigmoid thresholding and micro/macro F1
-- 🔄 Training arguments: Configure TrainingArguments (output_dir, eval_strategy, learning_rate, batch_size, epochs)
-- 🔄 Model training: Create Trainer, train model, save best checkpoint based on micro-F1
+- 🔄 Complete model training (3 epochs in progress)
+- 🔄 Save best model checkpoint based on validation micro-F1
+- 🔄 Evaluate on test set
+- 🔄 Error analysis and threshold optimization
 
 **Challenges Encountered:**
 - Ensuring label order consistency across notebooks (critical for binary vector encoding)
 - Understanding HuggingFace Dataset format requirements (torch format for training)
 - Managing text length (2000 chars → 512 tokens) to balance information retention and memory
+- Installing accelerate package in Codecademy ML kernel environment (required for Trainer class)
+- Fixing tokenizers parallelism warning (set TOKENIZERS_PARALLELISM=false)
+- Resolving Accelerator context manager usage (Trainer handles accelerate internally)
+
+**Training Configuration:**
+- **Model:** DistilBERT-base-uncased (6 transformer layers, 768 hidden size)
+- **Output:** 10-label multi-label classifier (BCEWithLogitsLoss)
+- **Training:** 3 epochs, batch_size=8, learning_rate=2e-5
+- **Validation:** Evaluated each epoch, best model saved based on micro-F1
+- **Optimization:** AdamW optimizer, weight_decay=0.01, warmup_ratio=0.1
+- **Device:** MPS (Metal Performance Shaders) on macOS
 
 **Next Steps:**
-- Complete model initialization and training configuration
-- Run training with validation monitoring
-- Optimize thresholds on validation set
-- Evaluate on test set
+- Complete training and analyze validation metrics
+- Save best model checkpoint to `../artifacts/model/best`
+- Evaluate on test set with final model
+- Optimize per-label thresholds on validation set
+- Perform error analysis on misclassified examples
 
 ---
 
