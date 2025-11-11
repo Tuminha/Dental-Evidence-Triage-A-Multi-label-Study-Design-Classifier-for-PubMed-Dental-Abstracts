@@ -63,7 +63,9 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 - [x] **Notebook 01** - Complete PubMed ingestion pipeline (400 XML files, ~76,165 articles)
 - [x] **Notebook 02** - Data normalization and multi-label mapping (64,981 labeled articles, 85.3% coverage)
 - [x] **Notebook 03** - EDA, label analysis, and temporal splits (Train: 29,926 / Val: 16,057 / Test: 18,666)
-- [ ] DistilBERT classifier with micro-F1 ≥ 0.75 on common labels
+- [x] **Notebook 04** - Data preparation complete (label binarization, tokenization, HF Dataset conversion)
+- [ ] DistilBERT classifier training and evaluation
+- [ ] Micro-F1 ≥ 0.75 on common labels
 - [ ] Hugging Face Hub deployment with inference widget
 - [ ] Error analysis and threshold optimization
 
@@ -222,10 +224,17 @@ jupyter notebook notebooks/
 
 ### Phase 3: Model Training 🔄
 
-**04 - Train DistilBERT Multi-label**
-- Tokenization and encoding
-- BCEWithLogits loss
-- Threshold optimization on validation set
+**04 - Train DistilBERT Multi-label** (In Progress)
+- ✅ Canonical label list defined (10 labels matching notebook 02)
+- ✅ Data loading: train/val/test splits loaded and text columns created (title + abstract, truncated to 2000 chars)
+- ✅ Label binarization: Multi-hot binary vectors created for all splits
+- ✅ HuggingFace Dataset creation: Converted pandas DataFrames to HF Dataset format
+- ✅ Tokenization: DistilBERT tokenizer applied with max_length=512, truncation, padding
+- ✅ Dataset formatting: Set to PyTorch format with input_ids, attention_mask, labels
+- 🔄 Model initialization (TODO)
+- 🔄 Metrics function (TODO)
+- 🔄 Training arguments configuration (TODO)
+- 🔄 Model training (TODO)
 
 **05 - Evaluation and Error Analysis**
 - Per-label precision/recall/F1
@@ -452,6 +461,51 @@ Expected targets:
 - Use train/val splits for training and hyperparameter tuning
 - Address class imbalance with class weights or focal loss
 - Optimize per-label thresholds on validation set
+
+---
+
+### 2024-11-10: Notebook 04 - Model Training Setup 🔄 (In Progress)
+
+**Completed:**
+- ✅ Canonical label list defined (10 labels: SystematicReview, MetaAnalysis, RCT, ClinicalTrial, Cohort, CaseControl, CaseReport, InVitro, Animal, Human)
+- ✅ Data loading: Loaded train/val/test parquet files (29,926 / 16,057 / 18,666 articles)
+- ✅ Text column creation: Concatenated title + abstract, truncated to 2000 characters
+- ✅ Label binarization: Implemented `binarize_labels()` function to convert label lists to multi-hot binary vectors (10-dimensional)
+- ✅ HuggingFace Dataset conversion: Created Dataset objects from pandas DataFrames with 'text' and 'label_vec' columns
+- ✅ Tokenization: Loaded DistilBERT tokenizer ('distilbert-base-uncased'), applied with max_length=512, truncation=True, padding='max_length'
+- ✅ Dataset formatting: Set format to 'torch' with columns ['input_ids', 'attention_mask', 'labels']
+- ✅ All acceptance criteria validated (non-null texts, proper truncation, correct vector dimensions)
+
+**Key Learnings:**
+- Multi-label classification requires binary cross-entropy (BCE) loss for independent label prediction
+- Label order consistency is critical: must match notebook 02 for proper binary vector encoding
+- HuggingFace Datasets provide seamless integration with Transformers library
+- Text truncation to 2000 chars before tokenization helps manage memory (tokenizer will further truncate to 512 tokens)
+- Multi-hot encoding preserves all label combinations (e.g., Human+RCT, Animal+InVitro)
+
+**Dataset Preparation:**
+- **Train:** 29,926 articles with tokenized inputs and binary label vectors
+- **Val:** 16,057 articles ready for validation during training
+- **Test:** 18,666 articles held out for final evaluation
+- **Tokenization:** All texts tokenized with DistilBERT tokenizer (512 max tokens)
+- **Label Vectors:** 10-dimensional binary vectors (98 unique combinations in training set)
+
+**Remaining Tasks:**
+- 🔄 Model initialization: Load DistilBERT with num_labels=10, problem_type='multi_label_classification'
+- 🔄 Metrics function: Implement compute_metrics() with sigmoid thresholding and micro/macro F1
+- 🔄 Training arguments: Configure TrainingArguments (output_dir, eval_strategy, learning_rate, batch_size, epochs)
+- 🔄 Model training: Create Trainer, train model, save best checkpoint based on micro-F1
+
+**Challenges Encountered:**
+- Ensuring label order consistency across notebooks (critical for binary vector encoding)
+- Understanding HuggingFace Dataset format requirements (torch format for training)
+- Managing text length (2000 chars → 512 tokens) to balance information retention and memory
+
+**Next Steps:**
+- Complete model initialization and training configuration
+- Run training with validation monitoring
+- Optimize thresholds on validation set
+- Evaluate on test set
 
 ---
 
