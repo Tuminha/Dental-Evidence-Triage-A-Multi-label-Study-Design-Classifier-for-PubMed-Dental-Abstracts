@@ -239,13 +239,14 @@ jupyter notebook notebooks/
 - ✅ Trainer setup: Created Trainer with model, datasets, and compute_metrics
 - ✅ Model training: Training completed (3 epochs, Micro-F1: 0.9287, Macro-F1: 0.7709, best model saved)
 
-**05 - Evaluation and Error Analysis** ✅ (In Progress)
+**05 - Evaluation and Error Analysis** ✅ (Complete)
 - ✅ Model and tokenizer loaded from saved checkpoint
 - ✅ Test set predictions generated (probability matrix)
 - ✅ Ground truth binary matrix created
 - ✅ Aggregate metrics computed (micro/macro precision/recall/F1)
 - ✅ Per-label performance report generated
-- 🔄 Error analysis and threshold optimization (TODO)
+- ✅ Error analysis completed for CaseControl and ClinicalTrial labels
+- 🔄 Threshold optimization (TODO - recommended for rare labels)
 
 ### Phase 4: Deployment 📦
 
@@ -385,11 +386,17 @@ The four-panel visualization above shows the complete training progression acros
 - **Generalization:** Test micro-F1 (0.89) close to validation (0.93), indicating good generalization
 
 **Recommendations:**
-- **Threshold Tuning:** Lower threshold for ClinicalTrial/CaseControl to improve recall
+- **Threshold Tuning:** Lower threshold for ClinicalTrial/CaseControl to improve recall (try 0.3-0.4 instead of 0.5)
 - **Class Weights:** Use weighted loss to boost rare labels in future training
 - **Focal Loss:** Consider focal loss to focus on hard examples
 - **Data Augmentation:** Collect more ClinicalTrial examples (only 103 in test set)
 - **Label Merging:** Consider merging ClinicalTrial with RCT if clinically acceptable
+
+**Error Analysis Summary:**
+- **CaseControl:** Model predicts Human/Cohort/RCT correctly but misses CaseControl (too conservative)
+- **ClinicalTrial:** Similar pattern - catches common labels but misses rare ClinicalTrial
+- **Root Cause:** Class imbalance (rare labels need lower thresholds or class weights)
+- **Solution:** Per-label threshold tuning or weighted training for rare labels
 
 ### 📌 Business Interpretation
 
@@ -690,10 +697,30 @@ The four-panel visualization above shows the complete training progression acros
 - Understanding ground truth binary matrix concept (resolved: same format as predictions for comparison)
 - Interpreting micro vs macro averages (resolved: micro=overall, macro=per-label average)
 
+**Error Analysis Findings:**
+
+**CaseControl Label (Recall: 0.04, F1: 0.08):**
+- **Pattern:** Model predicts common labels (Human, Cohort, RCT) but misses CaseControl
+- **Root Cause:** Class imbalance (1,513 examples = 5.4% of labels) + semantic similarity with Cohort
+- **Example:** True `['CaseControl', 'Human', 'RCT']` → Predicted `['Human', 'RCT']` (misses CaseControl)
+- **Insight:** Model is too conservative - catches co-occurring labels but not the rare CaseControl label
+
+**ClinicalTrial Label (Recall: 0.28, F1: 0.39):**
+- **Pattern:** Similar to CaseControl - predicts Human/Cohort/RCT but misses ClinicalTrial
+- **Root Cause:** Extreme class imbalance (103 examples = 0.4% of labels, rarest label)
+- **Example:** True `['ClinicalTrial', 'Human']` → Predicted `['Human']` (misses ClinicalTrial)
+- **Insight:** Model learned to predict common labels well but is cautious with ultra-rare labels
+
+**Key Observations:**
+- Model correctly identifies co-occurring common labels (Human, Cohort, RCT)
+- Model is being conservative with rare labels due to class imbalance
+- Semantic similarity: CaseControl confused with Cohort, ClinicalTrial confused with RCT
+- Threshold=0.5 may be too high for rare labels (probabilities likely 0.3-0.45)
+
 **Remaining Tasks:**
-- 🔄 Error analysis: Inspect false positives/negatives for specific labels
-- 🔄 Threshold optimization: Tune per-label thresholds on validation set
-- 🔄 Qualitative error inspection: Review misclassified examples
+- 🔄 Threshold optimization: Tune per-label thresholds (lower for CaseControl/ClinicalTrial)
+- 🔄 Probability analysis: Check actual probabilities for rare labels
+- 🔄 Future training: Consider class weights or focal loss for rare labels
 
 **Next Steps:**
 - Perform error analysis on ClinicalTrial and CaseControl labels
