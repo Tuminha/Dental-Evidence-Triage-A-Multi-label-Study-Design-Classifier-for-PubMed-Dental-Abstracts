@@ -66,7 +66,8 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 - [x] **Notebook 04** - Data preparation complete (label binarization, tokenization, HF Dataset conversion)
 - [x] **Notebook 04** - Model setup complete (model initialization, metrics function, training args, trainer)
 - [x] **Notebook 04** - Training complete (3 epochs, Micro-F1: 0.9287, Macro-F1: 0.7709, best model saved)
-- [x] **Micro-F1 ≥ 0.75** - Achieved 0.9287 (exceeded target by 24%)
+- [x] **Micro-F1 ≥ 0.75** - Achieved 0.9287 on validation, 0.8917 on test (exceeded target by 19-24%)
+- [x] **Notebook 05** - Test set evaluation complete (Micro-F1: 0.8917, Macro-F1: 0.7397, per-label analysis done)
 - [ ] Hugging Face Hub deployment with inference widget
 - [ ] Error analysis and threshold optimization
 
@@ -238,10 +239,13 @@ jupyter notebook notebooks/
 - ✅ Trainer setup: Created Trainer with model, datasets, and compute_metrics
 - ✅ Model training: Training completed (3 epochs, Micro-F1: 0.9287, Macro-F1: 0.7709, best model saved)
 
-**05 - Evaluation and Error Analysis**
-- Per-label precision/recall/F1
-- PR curves and threshold tuning
-- Qualitative error inspection
+**05 - Evaluation and Error Analysis** ✅ (In Progress)
+- ✅ Model and tokenizer loaded from saved checkpoint
+- ✅ Test set predictions generated (probability matrix)
+- ✅ Ground truth binary matrix created
+- ✅ Aggregate metrics computed (micro/macro precision/recall/F1)
+- ✅ Per-label performance report generated
+- 🔄 Error analysis and threshold optimization (TODO)
 
 ### Phase 4: Deployment 📦
 
@@ -326,6 +330,66 @@ The four-panel visualization above shows the complete training progression acros
 - **Epoch 3** shows best macro-F1 (best rare label performance)
 - **Minimal overfitting:** The small gap between training and validation loss indicates excellent generalization
 - **Consistent improvement:** All metrics show positive trends, with macro metrics improving more dramatically, indicating better rare label handling
+
+### Test Set Evaluation Results
+
+**Final Test Metrics (18,666 articles, threshold=0.5):**
+- **Micro-F1:** 0.8917 (89.17%) - **Strong overall performance**
+- **Macro-F1:** 0.7397 (73.97%) - **Good per-label average**
+- **Micro-Precision:** 0.8966 | **Micro-Recall:** 0.8868
+- **Macro-Precision:** 0.8201 | **Macro-Recall:** 0.7596
+
+**Key Findings:**
+- ✅ **Micro-F1 Gap:** 15.2% difference (0.8917 vs 0.7397) indicates class imbalance impact
+- ✅ **Generalization:** Test performance (0.8917) close to validation (0.9287), showing good generalization
+- ✅ **Overall Performance:** 89% correct predictions across all labels
+- ⚠️ **Rare Label Challenge:** Macro-F1 lower due to rare labels (ClinicalTrial, CaseControl)
+
+**Per-Label Performance:**
+
+| Label | Precision | Recall | F1-Score | Support | Status |
+|-------|-----------|--------|----------|---------|--------|
+| **Human** | 0.95 | 0.96 | **0.96** | 16,489 | ✅ Excellent |
+| **InVitro** | 0.93 | 0.93 | **0.93** | 2,183 | ✅ Excellent |
+| **CaseReport** | 0.95 | 0.89 | **0.92** | 1,409 | ✅ Excellent |
+| **SystematicReview** | 0.81 | 0.93 | **0.87** | 1,326 | ✅ Good |
+| **MetaAnalysis** | 0.77 | 0.97 | **0.86** | 601 | ✅ Good (high recall) |
+| **Animal** | 0.86 | 0.79 | **0.82** | 1,651 | ✅ Good |
+| **RCT** | 0.70 | 0.92 | **0.80** | 1,046 | ⚠️ Good recall, lower precision |
+| **Cohort** | 0.69 | 0.89 | **0.78** | 1,768 | ⚠️ Good recall, lower precision |
+| **ClinicalTrial** | 0.64 | 0.28 | **0.39** | 103 | ❌ Very low recall (rarest label) |
+| **CaseControl** | 0.89 | 0.04 | **0.08** | 1,513 | ❌ Extremely low recall |
+
+**Performance Categories:**
+
+**Excellent Performers (F1 > 0.85):**
+- **Human** (0.96): Largest class, excellent precision and recall
+- **InVitro** (0.93): Well-balanced, strong performance
+- **CaseReport** (0.92): High precision, slightly lower recall
+- **SystematicReview** (0.87): High recall, some false positives
+- **MetaAnalysis** (0.86): Very high recall (0.97), more false positives
+
+**Good Performers (F1 0.70-0.85):**
+- **Animal** (0.82): Balanced performance
+- **RCT** (0.80): High recall (0.92) but lower precision (0.70) - overpredicts
+- **Cohort** (0.78): Similar to RCT, high recall but lower precision
+
+**Problem Labels (F1 < 0.50):**
+- **ClinicalTrial** (0.39): Very low recall (0.28) - misses 72% of actual cases. Only 103 examples (rarest label)
+- **CaseControl** (0.08): Extremely low recall (0.04) - misses 96% of actual cases despite 1,513 examples
+
+**Insights:**
+- **Class Imbalance Impact:** 15.2% gap between micro (0.89) and macro (0.74) F1 shows rare labels need attention
+- **High-Recall Labels:** MetaAnalysis, SystematicReview, RCT have recall >0.90 but lower precision (overpredict)
+- **Low-Recall Labels:** ClinicalTrial and CaseControl severely underpredicted (need threshold tuning or class weights)
+- **Generalization:** Test micro-F1 (0.89) close to validation (0.93), indicating good generalization
+
+**Recommendations:**
+- **Threshold Tuning:** Lower threshold for ClinicalTrial/CaseControl to improve recall
+- **Class Weights:** Use weighted loss to boost rare labels in future training
+- **Focal Loss:** Consider focal loss to focus on hard examples
+- **Data Augmentation:** Collect more ClinicalTrial examples (only 103 in test set)
+- **Label Merging:** Consider merging ClinicalTrial with RCT if clinically acceptable
 
 ### 📌 Business Interpretation
 
@@ -594,6 +658,47 @@ The four-panel visualization above shows the complete training progression acros
 - Evaluate on test set with final model
 - Optimize per-label thresholds on validation set
 - Perform error analysis on misclassified examples
+
+---
+
+### 2024-11-12: Notebook 05 - Test Set Evaluation ✅ (In Progress)
+
+**Completed:**
+- ✅ Model and tokenizer loaded from `../artifacts/model/best` checkpoint
+- ✅ Test set loaded (18,666 articles from ≥2024)
+- ✅ Probability predictions generated for all test samples
+- ✅ Binary predictions created with threshold=0.5
+- ✅ Ground truth binary matrix created using same binarize_labels() function from training
+- ✅ Aggregate metrics computed: Micro-F1: 0.8917, Macro-F1: 0.7397
+- ✅ Per-label performance report generated showing precision/recall/F1 for all 10 labels
+
+**Key Findings:**
+- ✅ **Test Performance:** Micro-F1: 0.8917 (89.17%) - strong overall performance
+- ✅ **Generalization:** Test F1 (0.89) close to validation F1 (0.93), indicating good generalization
+- ⚠️ **Class Imbalance:** 15.2% gap between micro (0.89) and macro (0.74) F1 shows rare label impact
+- ✅ **Excellent Labels:** Human (0.96), InVitro (0.93), CaseReport (0.92) perform excellently
+- ⚠️ **Problem Labels:** ClinicalTrial (0.39 F1, recall 0.28) and CaseControl (0.08 F1, recall 0.04) need attention
+
+**Per-Label Performance Summary:**
+- **Excellent (F1 > 0.85):** Human, InVitro, CaseReport, SystematicReview, MetaAnalysis
+- **Good (F1 0.70-0.85):** Animal, RCT, Cohort
+- **Needs Improvement (F1 < 0.50):** ClinicalTrial, CaseControl
+
+**Challenges Encountered:**
+- Loading model from checkpoint (resolved: use directory path, HuggingFace handles all files)
+- Converting pandas Series to list for tokenizer (resolved: use .tolist())
+- Understanding ground truth binary matrix concept (resolved: same format as predictions for comparison)
+- Interpreting micro vs macro averages (resolved: micro=overall, macro=per-label average)
+
+**Remaining Tasks:**
+- 🔄 Error analysis: Inspect false positives/negatives for specific labels
+- 🔄 Threshold optimization: Tune per-label thresholds on validation set
+- 🔄 Qualitative error inspection: Review misclassified examples
+
+**Next Steps:**
+- Perform error analysis on ClinicalTrial and CaseControl labels
+- Optimize thresholds for rare labels to improve recall
+- Consider class weights or focal loss for future training iterations
 
 ---
 
