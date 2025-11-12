@@ -289,6 +289,44 @@ jupyter notebook notebooks/
 - **Generalization:** Strong (minimal overfitting, stable validation metrics)
 - **Target Achievement:** Exceeded micro-F1 target (0.75) by 24%
 
+### 📊 Training Metrics Visualization
+
+<div align="center">
+
+<img src="image/training_metrics.png" alt="Training Metrics Visualization" width="900" />
+
+</div>
+
+**Visualization Analysis:**
+
+The four-panel visualization above shows the complete training progression across 3 epochs:
+
+**1. Training and Validation Loss (Top-Left):**
+- **Training Loss (blue):** Decreases consistently from 0.0675 → 0.0470 (30% reduction), indicating the model is learning effectively
+- **Validation Loss (red):** Reaches minimum at Epoch 2 (0.0583), then slightly increases to 0.0597 in Epoch 3
+- **Key Insight:** Epoch 2 represents the best generalization point (lowest validation loss). The slight increase in epoch 3 suggests minimal overfitting, but the gap remains small (0.0127), indicating good generalization
+
+**2. F1 Scores Comparison (Top-Right):**
+- **Micro-F1 (green):** High and stable (0.9265 → 0.9287 → 0.9276), peaking at Epoch 2
+- **Macro-F1 (purple):** Shows strong improvement (0.7138 → 0.7545 → 0.7709), increasing 8% overall
+- **Key Insight:** Micro-F1 is dominated by the frequent "Human" label (74.6% of data), while Macro-F1's improvement indicates better performance on rare labels (ClinicalTrial, MetaAnalysis, etc.)
+
+**3. Micro Precision and Recall (Bottom-Left):**
+- **Micro Precision (teal):** Stable around 0.91 across all epochs
+- **Micro Recall (orange):** Slightly higher than precision (0.94-0.95), indicating the model is slightly more permissive in predictions
+- **Key Insight:** High and balanced micro metrics reflect strong overall classification performance
+
+**4. Macro Precision and Recall (Bottom-Right):**
+- **Macro Precision (purple):** Improves significantly from 0.6869 → 0.7598 (10.6% increase)
+- **Macro Recall (brown):** Shows consistent improvement from 0.7442 → 0.7894 (6.1% increase)
+- **Key Insight:** The improvement in macro metrics demonstrates the model is learning to better handle rare labels, which is critical for balanced multi-label classification
+
+**Overall Training Dynamics:**
+- **Epoch 2** is optimal for validation loss and micro-F1 (best generalization)
+- **Epoch 3** shows best macro-F1 (best rare label performance)
+- **Minimal overfitting:** The small gap between training and validation loss indicates excellent generalization
+- **Consistent improvement:** All metrics show positive trends, with macro metrics improving more dramatically, indicating better rare label handling
+
 ### 📌 Business Interpretation
 
 - **For Researchers:** Quickly triage literature by evidence strength
