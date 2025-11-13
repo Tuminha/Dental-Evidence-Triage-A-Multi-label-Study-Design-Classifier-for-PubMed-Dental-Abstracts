@@ -69,7 +69,7 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 - [x] **Micro-F1 ≥ 0.75** - Achieved 0.9287 on validation, 0.8917 on test (exceeded target by 19-24%)
 - [x] **Notebook 05** - Test set evaluation complete (Micro-F1: 0.8917, Macro-F1: 0.7397, per-label analysis done)
 - [x] **Notebook 06** - Hugging Face Hub deployment complete (model uploaded, YAML metadata added, sample dataset pushed)
-- [x] **Notebook 07** - Inference demo complete (model loading from HF Hub, prediction function, PubMed abstract fetching)
+- [x] **Notebook 07** - Inference demo complete (model loading from HF Hub, prediction function, PubMed abstract fetching, Gradio interface)
 - [ ] Error analysis and threshold optimization
 
 ---
@@ -265,7 +265,8 @@ jupyter notebook notebooks/
 - ✅ Prediction function implemented (tokenization, inference, sigmoid, top-k sorting)
 - ✅ PubMed abstract fetching utility (`fetch_abstract_by_pmid`)
 - ✅ XML parsing with error handling for missing title/abstract
-- 🔄 Gradio interface (optional, template provided)
+- ✅ True label comparison and accuracy assessment (precision, recall, F1 score)
+- ✅ Gradio interface implemented and working
 
 ---
 
@@ -814,6 +815,16 @@ The four-panel visualization above shows the complete training progression acros
   - Error handling for missing title/abstract elements
   - Support for nested AbstractText elements
 - ✅ Device detection: Automatic device detection from model parameters (avoids scope issues)
+- ✅ True label comparison and accuracy assessment:
+  - `get_true_labels_from_dataset()` function to fetch true labels from dataset files
+  - `test_with_pmid()` function for comprehensive testing with accuracy metrics
+  - Precision, recall, and F1 score calculation
+  - Performance assessment with clear feedback (Excellent/Very Good/Moderate/Poor)
+- ✅ Gradio interface implementation:
+  - Interactive web interface for easy model testing
+  - Simple text input for title + abstract
+  - Real-time predictions with probability scores
+  - User-friendly design for non-technical users
 
 **Key Learnings:**
 - MPS (Metal Performance Shaders) on macOS can cause "Placeholder storage" errors with Hugging Face models
@@ -821,6 +832,8 @@ The four-panel visualization above shows the complete training progression acros
 - Device can be detected from model using `next(model.parameters()).device` (avoids scope issues)
 - PubMed XML parsing requires handling of nested elements and None cases
 - `eutils_get` returns `requests.Response`, needs `.text` attribute for XML parsing
+- True labels come from dataset files (created in Notebook 02), not directly from PubMed
+- Accuracy assessment helps validate model performance on individual examples
 
 **Challenges Encountered:**
 - MPS device error: "Placeholder storage has not been allocated on MPS device!" (resolved: use CPU instead)
@@ -838,18 +851,43 @@ predictions = predict("Title: Effect of dental implants... Abstract: This study.
 # Returns: [('Human', 0.95), ('RCT', 0.87), ('Cohort', 0.23), ...]
 
 # Fetch from PubMed (Cell 6)
-title, abstract = fetch_abstract_by_pmid("24660200")
+title, abstract, pub_types, mesh_terms = fetch_abstract_by_pmid("24660200")
+
+# Test with true label comparison (Cell 10)
+test_with_pmid("24660200")  # Shows predictions vs true labels with accuracy metrics
 ```
 
+**Completed Since Last Update:**
+- ✅ True label comparison function implemented (`get_true_labels_from_dataset`)
+- ✅ Accuracy assessment with detailed feedback (precision, recall, F1, performance categories)
+- ✅ Test function with PMID support (`test_with_pmid`)
+- ✅ Gradio interface implemented and tested successfully
+- ✅ Interactive web demo working perfectly
+
+**Gradio Interface:**
+
+The Gradio interface provides a user-friendly way to test the model interactively. Users can paste a title and abstract, and get instant predictions with probabilities.
+
+<div align="center">
+
+<img src="image/gradio_interface.png" alt="Gradio Interface" width="900" />
+
+</div>
+
+**Features:**
+- Simple text input for title + abstract
+- Real-time predictions with probability scores
+- Clean, intuitive interface
+- No coding required - perfect for non-technical users
+
 **Remaining Tasks:**
-- 🔄 Test prediction function with diverse examples (Cell 10)
-- 🔄 Optional: Implement Gradio interface for interactive demo (Cell 12)
+- 🔄 Test prediction function with more diverse examples
 - 🔄 Add example test cases covering different study designs
+- 🔄 Optional: Deploy Gradio interface to Hugging Face Spaces
 
 **Next Steps:**
-- Test predictions on known abstracts (Systematic Review, RCT, Case Report, In Vitro, Animal)
-- Verify predictions match expected study designs
-- Optional: Build Gradio interface for user-friendly testing
+- Test predictions on more diverse abstracts (Systematic Review, RCT, Case Report, In Vitro, Animal)
+- Consider deploying Gradio interface to Hugging Face Spaces for public access
 
 ---
 
