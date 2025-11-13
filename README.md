@@ -68,7 +68,7 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 - [x] **Notebook 04** - Training complete (3 epochs, Micro-F1: 0.9287, Macro-F1: 0.7709, best model saved)
 - [x] **Micro-F1 ≥ 0.75** - Achieved 0.9287 on validation, 0.8917 on test (exceeded target by 19-24%)
 - [x] **Notebook 05** - Test set evaluation complete (Micro-F1: 0.8917, Macro-F1: 0.7397, per-label analysis done)
-- [ ] Hugging Face Hub deployment with inference widget
+- [x] **Notebook 06** - Hugging Face Hub deployment complete (model uploaded, YAML metadata added, sample dataset pushed)
 - [ ] Error analysis and threshold optimization
 
 ---
@@ -250,10 +250,13 @@ jupyter notebook notebooks/
 
 ### Phase 4: Deployment 📦
 
-**06 - Push to Hugging Face Hub**
-- Model card generation
-- Hub upload with metadata
-- Inference widget configuration
+**06 - Push to Hugging Face Hub** ✅ (Complete)
+- ✅ Model card generation with YAML front matter (library_name, tags, metrics, model-index)
+- ✅ Hub upload with all model files (config.json, model.safetensors, tokenizer files, README.md)
+- ✅ Sample dataset upload (2,000 rows for reproducibility)
+- ✅ Model available at: [https://huggingface.co/Tuminha/dental-evidence-triage](https://huggingface.co/Tuminha/dental-evidence-triage)
+- ✅ Dataset available at: [https://huggingface.co/datasets/Tuminha/dental-evidence-dataset](https://huggingface.co/datasets/Tuminha/dental-evidence-dataset)
+- 🔄 Inference widget configuration (manual setup in HF Settings)
 
 **07 - Inference Demo**
 - Interactive Gradio interface
@@ -668,7 +671,7 @@ The four-panel visualization above shows the complete training progression acros
 
 ---
 
-### 2024-11-12: Notebook 05 - Test Set Evaluation ✅ (In Progress)
+### 2024-11-12: Notebook 05 - Test Set Evaluation ✅ (Complete)
 
 **Completed:**
 - ✅ Model and tokenizer loaded from `../artifacts/model/best` checkpoint
@@ -726,6 +729,66 @@ The four-panel visualization above shows the complete training progression acros
 - Perform error analysis on ClinicalTrial and CaseControl labels
 - Optimize thresholds for rare labels to improve recall
 - Consider class weights or focal loss for future training iterations
+
+---
+
+### 2024-11-12: Notebook 06 - Hugging Face Hub Deployment ✅ (Complete)
+
+**Completed:**
+- ✅ Hugging Face Hub authentication setup (using HUGGINGFACE_API_KEY environment variable)
+- ✅ Model card generation with complete metrics from Notebook 05:
+  - Aggregate metrics (Micro-F1: 0.8917, Macro-F1: 0.7397, Precision, Recall)
+  - Per-label performance table (all 10 labels with precision/recall/F1/support)
+  - Training data statistics (64,981 articles, split sizes)
+  - Hyperparameters (learning_rate=2e-5, epochs=3, batch_size=8)
+  - Hardware specification (Apple Silicon MPS)
+- ✅ YAML front matter added to model card:
+  - Library name, license, tags (multi-label-classification, dental, medical, distilbert)
+  - Task type, datasets, metrics
+  - Model-index with performance results
+  - Base model specification
+- ✅ Model repository created: `Tuminha/dental-evidence-triage`
+- ✅ Model files uploaded to Hugging Face Hub:
+  - `config.json` (model configuration)
+  - `model.safetensors` (255MB, model weights)
+  - `tokenizer.json`, `tokenizer_config.json`, `vocab.txt` (tokenizer files)
+  - `special_tokens_map.json` (special tokens)
+  - `README.md` (complete model card with YAML metadata)
+- ✅ Sample dataset preparation and upload:
+  - 2,000 rows sampled from training set (random_state=42 for reproducibility)
+  - Text column created (title + abstract, truncated to 2000 chars)
+  - Key fields preserved (pmid, title, abstract, text, labels, year)
+  - Dataset repository created: `Tuminha/dental-evidence-dataset`
+  - Sample dataset uploaded as `sample.parquet`
+
+**Key Learnings:**
+- YAML front matter in README.md is required for proper Hugging Face Hub integration
+- Model repositories use `repo_type="model"`, dataset repositories use `repo_type="dataset"`
+- `upload_folder()` parameter order: `folder_path` first, then `repo_id`
+- Model card should include structured metadata for discoverability
+- Sample datasets help with reproducibility and allow others to test the model
+
+**Model Access:**
+- **Model Hub:** [https://huggingface.co/Tuminha/dental-evidence-triage](https://huggingface.co/Tuminha/dental-evidence-triage)
+- **Dataset Hub:** [https://huggingface.co/datasets/Tuminha/dental-evidence-dataset](https://huggingface.co/datasets/Tuminha/dental-evidence-dataset)
+- **Usage:** Model can be loaded with `AutoTokenizer` and `AutoModelForSequenceClassification.from_pretrained("Tuminha/dental-evidence-triage")`
+
+**Challenges Encountered:**
+- YAML metadata warning (resolved: added complete YAML front matter to README.md)
+- Parameter order in `upload_folder()` (resolved: folder_path first, then repo_id)
+- Dataset repo type specification (resolved: use `repo_type="dataset"` for datasets)
+- File path issues for sample dataset (resolved: corrected path from `../artifacts/data/processed` to `../data/processed`)
+
+**Remaining Tasks:**
+- 🔄 Inference widget configuration (enable in HF Settings → Model Card)
+- 🔄 Test inference widget with sample abstracts
+- 🔄 Optional: Add more example inputs to model card
+
+**Next Steps:**
+- Enable inference widget in Hugging Face Settings
+- Test model inference through HF Hub interface
+- Consider adding more example inputs to model card
+- Optional: Create Gradio demo (Notebook 07)
 
 ---
 

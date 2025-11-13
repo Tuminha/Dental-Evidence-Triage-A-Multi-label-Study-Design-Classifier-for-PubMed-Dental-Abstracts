@@ -122,7 +122,7 @@ See [DATACARD.md](DATACARD.md) for full documentation.
 
 ### Per-label Performance
 
-*Example template:*
+*Fill in with actual metrics from classification_report:*
 
 | Label | Precision | Recall | F1 | Support |
 |-------|-----------|--------|-----|---------|
