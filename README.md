@@ -69,6 +69,7 @@ A compact transformer that reads **title + abstract** and predicts **study desig
 - [x] **Micro-F1 ≥ 0.75** - Achieved 0.9287 on validation, 0.8917 on test (exceeded target by 19-24%)
 - [x] **Notebook 05** - Test set evaluation complete (Micro-F1: 0.8917, Macro-F1: 0.7397, per-label analysis done)
 - [x] **Notebook 06** - Hugging Face Hub deployment complete (model uploaded, YAML metadata added, sample dataset pushed)
+- [x] **Notebook 07** - Inference demo complete (model loading from HF Hub, prediction function, PubMed abstract fetching)
 - [ ] Error analysis and threshold optimization
 
 ---
@@ -258,10 +259,13 @@ jupyter notebook notebooks/
 - ✅ Dataset available at: [https://huggingface.co/datasets/Tuminha/dental-evidence-dataset](https://huggingface.co/datasets/Tuminha/dental-evidence-dataset)
 - 🔄 Inference widget configuration (manual setup in HF Settings)
 
-**07 - Inference Demo**
-- Interactive Gradio interface
-- PMID-based abstract fetching
-- Real-time predictions
+**07 - Inference Demo** ✅ (Complete)
+- ✅ Model loading from Hugging Face Hub (`Tuminha/dental-evidence-triage`)
+- ✅ Device handling (CPU for stability, avoids MPS issues)
+- ✅ Prediction function implemented (tokenization, inference, sigmoid, top-k sorting)
+- ✅ PubMed abstract fetching utility (`fetch_abstract_by_pmid`)
+- ✅ XML parsing with error handling for missing title/abstract
+- 🔄 Gradio interface (optional, template provided)
 
 ---
 
@@ -789,6 +793,63 @@ The four-panel visualization above shows the complete training progression acros
 - Test model inference through HF Hub interface
 - Consider adding more example inputs to model card
 - Optional: Create Gradio demo (Notebook 07)
+
+---
+
+### 2024-11-12: Notebook 07 - Inference Demo ✅ (Complete)
+
+**Completed:**
+- ✅ Model and tokenizer loading from Hugging Face Hub (`Tuminha/dental-evidence-triage`)
+- ✅ Device configuration: Using CPU for inference (more stable than MPS for Hugging Face models)
+- ✅ Prediction function implementation:
+  - Text truncation (2000 chars, matching training)
+  - Tokenization with proper parameters (max_length=512, truncation, padding)
+  - Model inference with device handling
+  - Sigmoid activation for probability scores
+  - Top-k label sorting and return
+- ✅ PubMed abstract fetching utility:
+  - `fetch_abstract_by_pmid()` function implemented
+  - Proper `eutils_get` usage with efetch.fcgi endpoint
+  - XML parsing with `lxml.etree`
+  - Error handling for missing title/abstract elements
+  - Support for nested AbstractText elements
+- ✅ Device detection: Automatic device detection from model parameters (avoids scope issues)
+
+**Key Learnings:**
+- MPS (Metal Performance Shaders) on macOS can cause "Placeholder storage" errors with Hugging Face models
+- CPU inference is more reliable for Hugging Face transformers, even on Apple Silicon
+- Device can be detected from model using `next(model.parameters()).device` (avoids scope issues)
+- PubMed XML parsing requires handling of nested elements and None cases
+- `eutils_get` returns `requests.Response`, needs `.text` attribute for XML parsing
+
+**Challenges Encountered:**
+- MPS device error: "Placeholder storage has not been allocated on MPS device!" (resolved: use CPU instead)
+- NameError: `device` not defined in predict function (resolved: get device from model parameters)
+- Incorrect `eutils_get` usage in `fetch_abstract_by_pmid` (resolved: proper params dict and XML parsing)
+- Missing error handling for XML elements (resolved: added None checks and nested element handling)
+
+**Usage Example:**
+```python
+# Load model (Cell 4)
+model = AutoModelForSequenceClassification.from_pretrained("Tuminha/dental-evidence-triage")
+
+# Predict labels (Cell 8)
+predictions = predict("Title: Effect of dental implants... Abstract: This study...", top_k=5)
+# Returns: [('Human', 0.95), ('RCT', 0.87), ('Cohort', 0.23), ...]
+
+# Fetch from PubMed (Cell 6)
+title, abstract = fetch_abstract_by_pmid("24660200")
+```
+
+**Remaining Tasks:**
+- 🔄 Test prediction function with diverse examples (Cell 10)
+- 🔄 Optional: Implement Gradio interface for interactive demo (Cell 12)
+- 🔄 Add example test cases covering different study designs
+
+**Next Steps:**
+- Test predictions on known abstracts (Systematic Review, RCT, Case Report, In Vitro, Animal)
+- Verify predictions match expected study designs
+- Optional: Build Gradio interface for user-friendly testing
 
 ---
 
